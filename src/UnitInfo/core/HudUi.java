@@ -26,13 +26,11 @@ import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.logic.*;
 import mindustry.type.*;
-import mindustry.type.ammo.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.distribution.MassDriver;
-import mindustry.world.blocks.payloads.PayloadMassDriver;
 import mindustry.world.blocks.power.PowerNode;
 import mindustry.world.blocks.storage.*;
 
@@ -76,7 +74,6 @@ public class HudUi {
     @Nullable Teamc target;
 
     public Seq<MassDriver.MassDriverBuild> linkedMasses = new Seq<>();
-    public Seq<PayloadMassDriver.PayloadDriverBuild> linkedPayloadMasses = new Seq<>();
     public Seq<Building> linkedNodes = new Seq<>();
 
     @SuppressWarnings("unchecked")
@@ -102,47 +99,6 @@ public class HudUi {
 
     public @Nullable Tile getTile(){
         return Vars.world.tileWorld(input.mouseWorldX(), input.mouseWorldY());
-    }
-
-    public void drawMassPayloadLink(PayloadMassDriver.PayloadDriverBuild from){
-        Groups.build.each(b -> b instanceof PayloadMassDriver.PayloadDriverBuild fromMass &&
-                world.build(fromMass.link) == from &&
-                from.within(fromMass.x, fromMass.y, ((PayloadMassDriver)fromMass.block).range) &&
-                !linkedPayloadMasses.contains(from), b -> {
-            linkedPayloadMasses.add((PayloadMassDriver.PayloadDriverBuild) b);
-            drawMassPayloadLink((PayloadMassDriver.PayloadDriverBuild) b);
-        });
-
-        if(world.build(from.link) instanceof PayloadMassDriver.PayloadDriverBuild to && from != to &&
-                to.within(from.x, from.y, ((PayloadMassDriver)from.block).range)){
-            float sin = Mathf.absin(Time.time, 6f, 1f);
-            Tmp.v1.set(from.x + from.block.offset, from.y + from.block.offset).sub(to.x, to.y).limit(from.block.size * tilesize + sin + 0.5f);
-            float x2 = from.x - Tmp.v1.x, y2 = from.y - Tmp.v1.y,
-                    x1 = to.x + Tmp.v1.x, y1 = to.y + Tmp.v1.y;
-            int segs = (int)(to.dst(from.x, from.y)/tilesize);
-
-            Lines.stroke(4f, Pal.gray);
-            Lines.dashLine(x1, y1, x2, y2, segs);
-            Lines.stroke(2f, Pal.placing);
-            Lines.dashLine(x1, y1, x2, y2, segs);
-            Lines.stroke(1f, Pal.accent);
-            Drawf.circles(from.x, from.y, (from.tile.block().size / 2f + 1) * tilesize + sin - 2f, Pal.accent);
-
-            for(var shooter : from.waitingShooters){
-                Drawf.circles(shooter.x, shooter.y, (from.tile.block().size / 2f + 1) * tilesize + sin - 2f);
-                Drawf.arrow(shooter.x, shooter.y, from.x, from.y, from.block.size * tilesize + sin, 4f + sin);
-            }
-            if(from.link != -1 && world.build(from.link) instanceof PayloadMassDriver.PayloadDriverBuild other && other.block == from.block && other.team == from.team && from.within(other, ((PayloadMassDriver)from.block).range)){
-                Building target = world.build(from.link);
-                Drawf.circles(target.x, target.y, (target.block().size / 2f + 1) * tilesize + sin - 2f);
-                Drawf.arrow(from.x, from.y, target.x, target.y, from.block.size * tilesize + sin, 4f + sin);
-            }
-            if(world.build(to.link) instanceof PayloadMassDriver.PayloadDriverBuild newTo && to != newTo &&
-                    newTo.within(to.x, to.y, ((PayloadMassDriver)to.block).range) && !linkedPayloadMasses.contains(to)){
-                linkedPayloadMasses.add(to);
-                drawMassPayloadLink(to);
-            }
-        }
     }
 
     public void drawMassLink(MassDriver.MassDriverBuild from){
@@ -188,7 +144,7 @@ public class HudUi {
 
     public Seq<Building> getPowerLinkedBuilds(Building build) {
         Seq<Building> linkedBuilds = new Seq<>();
-        build.power.links.each(i -> linkedBuilds.add(world.build(i)));
+        for(int i = 0; i < build.power.links.size; i++) linkedBuilds.add(world.build(build.power.links.get(i)));
         build.proximity().each(linkedBuilds::add);
         linkedBuilds.filter(b -> b != null && b.power != null);
         if(!build.block.outputsPower && !(build instanceof PowerNode.PowerNodeBuild))
@@ -207,7 +163,7 @@ public class HudUi {
 
                 Draw.color(Color.white, Color.valueOf("98ff98"), (1f - node.power.graph.getSatisfaction()) * 0.86f + Mathf.absin(3f, 0.1f));
                 Draw.alpha(Renderer.laserOpacity);
-                Drawf.laser(node.team, atlas.find("unitinfo-Slaser"), atlas.find("unitinfo-Slaser-end"), node.x + vx*len1, node.y + vy*len1, other.x - vx*len2, other.y - vy*len2, 0.25f);
+                Drawf.laser(node.team, atlas.find("unitinfo6-Slaser"), atlas.find("unitinfo6-Slaser-end"), node.x + vx*len1, node.y + vy*len1, other.x - vx*len2, other.y - vy*len2, 0.25f);
 
                 if(other.power != null) getPowerLinkedBuilds(other).each(this::drawNodeLink);
             });
@@ -224,10 +180,6 @@ public class HudUi {
                 if(getTarget() instanceof MassDriver.MassDriverBuild mass) {
                     linkedMasses.clear();
                     drawMassLink(mass);
-                }
-                else if(getTarget() instanceof PayloadMassDriver.PayloadDriverBuild mass) {
-                    linkedPayloadMasses.clear();
-                    drawMassPayloadLink(mass);
                 }
             }
 
@@ -433,21 +385,21 @@ public class HudUi {
                 update(() -> {
                     Element image = new Element();
                     if(getTarget() instanceof ItemTurret.ItemTurretBuild turret){
-                        if(turret.hasAmmo()) image = new Image(((ItemTurret)turret.block).ammoTypes.findKey(turret.peekAmmo(), true).uiIcon);
+                        if(turret.hasAmmo()) image = new Image(((ItemTurret)turret.block).ammoTypes.findKey(turret.peekAmmo(), true).icon(Cicon.tiny));
                         else {MultiReqImage itemReq = new MultiReqImage();
                             for(Item item : ((ItemTurret) turret.block).ammoTypes.keys())
-                                itemReq.add(new ReqImage(item.uiIcon, turret::hasAmmo));
+                                itemReq.add(new ReqImage(item.icon(Cicon.tiny), turret::hasAmmo));
                             image = itemReq;
                         }
                     }
                     else if(getTarget() instanceof LiquidTurret.LiquidTurretBuild turret){
                         MultiReqImage liquidReq = new MultiReqImage();
                         for(Liquid liquid : ((LiquidTurret) turret.block).ammoTypes.keys())
-                            liquidReq.add(new ReqImage(liquid.uiIcon, turret::hasAmmo));
+                            liquidReq.add(new ReqImage(liquid.icon(Cicon.tiny), turret::hasAmmo));
                         image = liquidReq;
 
                         if(((LiquidTurret.LiquidTurretBuild) getTarget()).hasAmmo())
-                            image = new Image(turret.liquids.current().uiIcon).setScaling(Scaling.fit);
+                            image = new Image(turret.liquids.current().icon(Cicon.tiny)).setScaling(Scaling.fit);
                     }
                     else if(getTarget() instanceof PowerTurret.PowerTurretBuild){
                         image = new Image(Icon.power.getRegion()){
@@ -469,7 +421,7 @@ public class HudUi {
                         };
                     }
                     clearChildren();
-                    add(image).size(iconSmall).padBottom(2 * 8f).padRight(3 * 8f);
+                    add(image).size(Cicon.small.size).padBottom(2 * 8f).padRight(3 * 8f);
                 });
                 pack();
             }});
@@ -478,7 +430,7 @@ public class HudUi {
                 t.add(new Image(){{
                         update(() -> {
                             if(getTarget() instanceof Unit u && u.stack.item != null && u.stack.amount > 0)
-                                setDrawable(u.stack.item.uiIcon);
+                                setDrawable(u.stack.item.icon(Cicon.small));
                             else setDrawable(clear);
                         });
                         visibility = () -> getTarget() instanceof Unit;
@@ -534,9 +486,9 @@ public class HudUi {
                         TextureRegion region = clear;
 
                         if(Vars.state.rules.unitAmmo && getTarget() instanceof Unit u && u.type != null){
-                            UnitType type = u.type;
-                            if(type.ammoType instanceof ItemAmmoType ammo) region = ammo.item.uiIcon;
-                            else if(type.ammoType instanceof PowerAmmoType) region = Icon.powerSmall.getRegion();
+                            if(u.type.ammoType == AmmoTypes.copper) region = Items.copper.icon(Cicon.small);
+                            if(u.type.ammoType == AmmoTypes.thorium) region = Items.thorium.icon(Cicon.small);
+                            if(u.type.ammoType == AmmoTypes.power || u.type.ammoType == AmmoTypes.powerLow || u.type.ammoType == AmmoTypes.powerHigh) region = Icon.powerSmall.getRegion();
                         }
                         setDrawable(region);
                     });
@@ -558,7 +510,7 @@ public class HudUi {
                     for(int r = 0; r < type.weapons.size; r++){
                         Weapon weapon = type.weapons.get(r);
                         WeaponMount mount = u.mounts[r];
-                        TextureRegion region = !weapon.name.equals("") && weapon.outlineRegion.found() ? weapon.outlineRegion : type.uiIcon;
+                        TextureRegion region = !weapon.name.equals("") && weapon.outlineRegion.found() ? weapon.outlineRegion : type.icon(Cicon.full);
                         if(type.weapons.size > 1 && r % 3 == 0) tt.row();
                         else if(r % 3 == 0) tt.row();
                         tt.table(weapontable -> {
@@ -635,10 +587,10 @@ public class HudUi {
                         add(new Table(ttt -> ttt.add(new Image(){{
                             update(() -> {
                                 TextureRegion region = clear;
-                                if(getTarget() instanceof Unit && ((Unit) getTarget()).type() != null) region = ((Unit) getTarget()).type().uiIcon;
-                                else if(getTarget() instanceof Building && ((Building) getTarget()).block != null) {
-                                    if(getTarget() instanceof ConstructBlock.ConstructBuild) region = ((ConstructBlock.ConstructBuild) getTarget()).current.uiIcon;
-                                    else region = ((Building) getTarget()).block.uiIcon;
+                                if(getTarget() instanceof Unit u && ((Unit) getTarget()).type() != null) region = u.type.icon(Cicon.small);
+                                else if(getTarget() instanceof Building b && b.block != null) {
+                                    if(getTarget() instanceof ConstructBlock.ConstructBuild cb) region = cb.cblock.icon(Cicon.small);
+                                    else region = b.block.icon(Cicon.small);
                                 }
                                 setDrawable(region);
                             });
@@ -664,20 +616,20 @@ public class HudUi {
 
                     Label label = new Label(() -> {
                         String name = "";
-                        if(getTarget() instanceof Unit && ((Unit) getTarget()).type() != null)
-                            name = "[accent]" + ((Unit) getTarget()).type().localizedName + "[]";
-                        if(getTarget() instanceof Building && ((Building) getTarget()).block() != null) {
-                            if(getTarget() instanceof ConstructBlock.ConstructBuild) name = "[accent]" + ((ConstructBlock.ConstructBuild) getTarget()).current.localizedName + "[]";
-                            else name = "[accent]" + ((Building) getTarget()).block.localizedName + "[]";
+                        if(getTarget() instanceof Unit u && u.type != null)
+                            name = "[accent]" + u.type.localizedName + "[]";
+                        if(getTarget() instanceof Building b && b.block != null) {
+                            if(getTarget() instanceof ConstructBlock.ConstructBuild cb) name = "[accent]" + cb.cblock.localizedName + "[]";
+                            else name = "[accent]" + b.block.localizedName + "[]";
                         }
                         return name;
                     });
 
                     TextButton button = Elem.newButton("?", Styles.clearPartialt, () -> {
-                        if(getTarget() instanceof Unit && ((Unit) getTarget()).type() != null)
-                            ui.content.show(((Unit) getTarget()).type);
-                        if(getTarget() instanceof Building && ((Building) getTarget()).block != null) {
-                            ui.content.show(((Building) getTarget()).block);
+                        if(getTarget() instanceof Unit u && u.type != null)
+                            ui.content.show(u.type);
+                        if(getTarget() instanceof Building b && b.block != null) {
+                            ui.content.show(b.block);
                         }
                     });
                     button.visibility = () -> getTarget() != null;
@@ -814,11 +766,11 @@ public class HudUi {
 
                     tx.table(tt -> {
                         tt.right();
-                        Image image = new Image(group.type.uiIcon).setScaling(Scaling.fit);
+                        Image image = new Image(group.type.icon(Cicon.medium)).setScaling(Scaling.fit);
                         tt.add(new Stack(){{
                             add(new Table(ttt -> {
                                 ttt.center();
-                                ttt.add(image).size(iconLarge);
+                                ttt.add(image).size(40f);
                                 ttt.pack();
                             }));
 
@@ -858,7 +810,7 @@ public class HudUi {
                             to.add(bundle.format("shar-stat-waveShield", group.getShield(j))).row();
                             if(group.effect != null) {
                                 if(group.effect == StatusEffects.none) return;
-                                Image status = new Image(group.effect.uiIcon).setScaling(Scaling.fit);
+                                Image status = new Image(group.effect.icon(Cicon.small)).setScaling(Scaling.fit);
                                 if(group.effect == StatusEffects.boss){
                                     status = new Image(Icon.warning.getRegion()).setScaling(Scaling.fit);
                                     Image finalStatus = status;
@@ -875,7 +827,7 @@ public class HudUi {
                                         finalStatus.update(() -> finalStatus.color.lerp(!listener.isOver() ? Color.lightGray : Color.white, Mathf.clamp(0.4f * Time.delta)));
                                     }
                                     tot.add("[stat]" + group.effect.localizedName);
-                                }).size(iconMed);
+                                }).size(32f);
                                 to.row();
                             }
                             if(group.items != null) {
@@ -890,7 +842,7 @@ public class HudUi {
                                         tot.update(() -> tot.color.lerp(!listener.isOver() ? Color.lightGray : Color.white, Mathf.clamp(0.4f * Time.delta)));
                                     }
                                     tot.add("[stat]" + stack.item.localizedName);
-                                }).size(iconMed);
+                                }).size(32f);
                                 to.row();
                             }
                         })));
@@ -963,7 +915,7 @@ public class HudUi {
                         tt.add(new Stack(){{
                             add(new Table(s -> {
                                 s.left();
-                                Image image = new Image(core.block.uiIcon);
+                                Image image = new Image(core.block.icon(Cicon.medium));
                                 image.clicked(() -> {
                                     if (control.input instanceof DesktopInput)
                                         ((DesktopInput) control.input).panning = true;
@@ -975,7 +927,7 @@ public class HudUi {
                                     image.update(() -> image.color.lerp(!listener1.isOver() ? Color.lightGray : Color.white, Mathf.clamp(0.4f * Time.delta)));
                                 }
                                 image.addListener(new Tooltip(t -> t.background(Tex.button).label(() -> "([#" + Tmp.c1.set(Color.green).lerp(Color.red, 1 - core.healthf()).toString() + "]" + Strings.fixed(core.health, 2) + "[]/" + Strings.fixed(core.block.health, 2) + ")")));
-                                s.add(image).size(iconLarge).scaling(Scaling.fit);
+                                s.add(image).size(40f).scaling(Scaling.fit);
                             }));
 
                             add(new Table(s -> {
@@ -1036,9 +988,9 @@ public class HudUi {
                 head.table(image -> {
                     image.left();
                     if(tile == null) return;
-                    if(tile.floor().uiIcon != atlas.find("error")) image.image(tile.floor().uiIcon);
-                    if(tile.overlay().uiIcon != atlas.find("error")) image.image(tile.overlay().uiIcon);
-                    if(tile.block().uiIcon != atlas.find("error")) image.image(tile.block().uiIcon);
+                    if(tile.floor().icon(Cicon.small) != atlas.find("error")) image.image(tile.floor().icon(Cicon.small));
+                    if(tile.overlay().icon(Cicon.small) != atlas.find("error")) image.image(tile.overlay().icon(Cicon.small));
+                    if(tile.block().icon(Cicon.small) != atlas.find("error")) image.image(tile.block().icon(Cicon.small));
                 });
                 head.label(() -> tile == null ? "(null, null)" : "(" + tile.x + ", " + tile.y + ")").center();
             });

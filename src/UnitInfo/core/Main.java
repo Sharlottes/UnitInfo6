@@ -145,7 +145,7 @@ public class Main extends Mod {
                     });
                 }
             }
-            if(!state.rules.polygonCoreProtection && settings.getBool("coreRange") && player != null){
+            if(settings.getBool("coreRange") && player != null){
                 state.teams.eachEnemyCore(player.team(), core -> {
                     if(Core.camera.bounds(Tmp.r1).overlaps(Tmp.r2.setCentered(core.x, core.y, state.rules.enemyCoreBuildRadius * 2f))){
                         Draw.color(Color.darkGray);

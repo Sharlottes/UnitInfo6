@@ -47,7 +47,7 @@ public class BarInfo {
     }
 
     public static String format(float number){
-        if(number >= 10000) return UI.formatAmount((long)number);
+        if(number >= 10000) return UI.formatAmount((int)number);
         if(String.valueOf(number).split("[.]")[1].matches("0")) return String.valueOf(number).split("[.]")[0];
         return Strings.fixed(number, 1);
     }
@@ -104,9 +104,12 @@ public class BarInfo {
             numbers.set(1, reconstruct.fraction());
         }
         else if(target instanceof MendProjector.MendBuild mend){
-            strings.set(1, Core.bundle.format("shar-stat.progress", Strings.fixed((float) mend.sense(LAccess.progress) * 100f, 2)));
+            Field ohno = MendProjector.MendBuild.class.getDeclaredField("charge");
+            ohno.setAccessible(true);
+            float charge = (float) ohno.get(mend);
+            strings.set(1, Core.bundle.format("shar-stat.progress", Strings.fixed(Mathf.clamp(charge/((MendProjector)mend.block).reload) * 100f, 2)));
             colors.set(1, Pal.heal);
-            numbers.set(1, (float) mend.sense(LAccess.progress));
+            numbers.set(1, Mathf.clamp(charge/((MendProjector)mend.block).reload));
         }
         else if(target instanceof OverdriveProjector.OverdriveBuild over){
             Field ohno = OverdriveProjector.OverdriveBuild.class.getDeclaredField("charge");
@@ -117,18 +120,20 @@ public class BarInfo {
             numbers.set(1, Mathf.clamp(charge/((OverdriveProjector)over.block).reload));
         }
         else if(target instanceof Drill.DrillBuild drill){
-            strings.set(1, bundle.format("shar-stat.progress", Strings.fixed((float) drill.sense(LAccess.progress) * 100f, 2)));
+            Drill block = (Drill) drill.block;
+            float progress = Mathf.clamp(drill.progress / (block.drillTime + block.hardnessDrillMultiplier * drill.dominantItem.hardness));
+            strings.set(1, bundle.format("shar-stat.progress", Strings.fixed(progress * 100f, 2)));
             colors.set(1, drill.dominantItem == null ? Pal.items : drill.dominantItem.color);
-            numbers.set(1, (float) drill.sense(LAccess.progress));
+            numbers.set(1, progress);
         }
         else if(target instanceof GenericCrafter.GenericCrafterBuild crafter){
             GenericCrafter block = (GenericCrafter) crafter.block;
             if(block.outputItem != null) Tmp.c1.set(block.outputItem.item.color);
             else if(block.outputLiquid != null) Tmp.c1.set(block.outputLiquid.liquid.color);
             else Tmp.c1.set(Pal.items);
-            strings.set(1, bundle.format("shar-stat.progress", Strings.fixed((float) crafter.sense(LAccess.progress) * 100f, 2)));
+            strings.set(1, bundle.format("shar-stat.progress", Strings.fixed(Mathf.clamp(crafter.progress) * 100f, 2)));
             colors.set(1, Tmp.c1);
-            numbers.set(1, (float) crafter.sense(LAccess.progress));
+            numbers.set(1, Mathf.clamp(crafter.progress));
         }
 
 
@@ -209,11 +214,12 @@ public class BarInfo {
             colors.set(3, Pal.ammo);
             numbers.set(3, e.warmup);
         }
-        else if(target instanceof AttributeCrafter.AttributeCrafterBuild crafter){
-            AttributeCrafter block = (AttributeCrafter) crafter.block;
-            strings.set(3, bundle.format("shar-stat.attr", (int)((block.baseEfficiency + Math.min(block.maxBoost, block.boostScale * block.sumAttribute(block.attribute, crafter.tileX(), crafter.tileY()))) * 100f)));
+        else if(target instanceof AttributeSmelter.AttributeSmelterBuild crafter){
+            AttributeSmelter block = (AttributeSmelter) crafter.block;
+            float max = content.blocks().max(b -> b instanceof Floor f && f.attributes != null ? f.attributes.get(block.attribute) : 0).asFloor().attributes.get(block.attribute);
+            strings.set(3, bundle.format("shar-stat.attr", (int)((block.baseEfficiency + block.boostScale * block.sumAttribute(block.attribute, crafter.tileX(), crafter.tileY())) * 100f)));
             colors.set(3, Pal.ammo);
-            numbers.set(3, block.boostScale * crafter.attrsum / block.maxBoost);
+            numbers.set(3, block.boostScale * crafter.attrsum / max);
         }
         else if(target instanceof SolidPump.SolidPumpBuild crafter){
             SolidPump block = (SolidPump) crafter.block;
@@ -240,7 +246,7 @@ public class BarInfo {
 
         if(target instanceof Unit unit && state.rules.unitAmmo && unit.type != null){
             strings.set(5, Core.bundle.format("shar-stat.ammos", format(unit.ammo()), format(unit.type().ammoCapacity)));
-            colors.set(5, unit.type().ammoType.color());
+            colors.set(5, unit.type().ammoType.color);
             numbers.set(5, unit.ammof());
         }
         else if(target instanceof Building build && build.block.hasPower && build.block.consumes.hasPower()){

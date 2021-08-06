@@ -1,6 +1,6 @@
 @rem put this project path into PATH_FROM
 setlocal
-set PATH_FROM=C:\Users\user\Documents\GitHub\UnitInfo
+set PATH_FROM=C:\Users\user\Documents\GitHub\UnitInfo6
 @rem put your mindustry local path into PATH_TO
 setlocal
 set PATH_TO=C:\Users\user\AppData\Roaming\Mindustry

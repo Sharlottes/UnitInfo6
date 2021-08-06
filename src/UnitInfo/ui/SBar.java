@@ -64,33 +64,33 @@ public class SBar extends Element{
         boolean shar2 = Core.settings.getBool("shar2");
         boolean shar3 = Core.settings.getBool("shar3");
 
-        bar = (NinePatchDrawable) drawable("unitinfo-barS", 10, 10, 9, 9);
-        top = (NinePatchDrawable) drawable("unitinfo-barS-top", 10, 10, 9, 9);
-        spriteWidth = Core.atlas.find("unitinfo-barS").width;
+        bar = (NinePatchDrawable) drawable("unitinfo6-barS", 10, 10, 9, 9);
+        top = (NinePatchDrawable) drawable("unitinfo6-barS-top", 10, 10, 9, 9);
+        spriteWidth = Core.atlas.find("unitinfo6-barS").width;
         if(ssim){
-            bar = (NinePatchDrawable) drawable("unitinfo-barSS", 14, 14, 19, 19);
-            top = (NinePatchDrawable) drawable("unitinfo-barSS-top", 14, 14, 19, 19);
-            spriteWidth = Core.atlas.find("unitinfo-barSS").width;
+            bar = (NinePatchDrawable) drawable("unitinfo6-barSS", 14, 14, 19, 19);
+            top = (NinePatchDrawable) drawable("unitinfo6-barSS-top", 14, 14, 19, 19);
+            spriteWidth = Core.atlas.find("unitinfo6-barSS").width;
         }
         else if(shar){
-            bar = (NinePatchDrawable) drawable("unitinfo-barSSS", 25, 25, 17, 17);
-            top = (NinePatchDrawable) drawable("unitinfo-barSSS-top", 25, 25, 17, 17);
-            spriteWidth = Core.atlas.find("unitinfo-barSSS").width;
+            bar = (NinePatchDrawable) drawable("unitinfo6-barSSS", 25, 25, 17, 17);
+            top = (NinePatchDrawable) drawable("unitinfo6-barSSS-top", 25, 25, 17, 17);
+            spriteWidth = Core.atlas.find("unitinfo6-barSSS").width;
         }
         else if(shar1){
-            bar = (NinePatchDrawable) drawable("unitinfo-barSSSS", 25, 25, 17, 17);
-            top = (NinePatchDrawable) drawable("unitinfo-barSSSS-top", 25, 25, 17, 17);
-            spriteWidth = Core.atlas.find("unitinfo-barSSSS").width;
+            bar = (NinePatchDrawable) drawable("unitinfo6-barSSSS", 25, 25, 17, 17);
+            top = (NinePatchDrawable) drawable("unitinfo6-barSSSS-top", 25, 25, 17, 17);
+            spriteWidth = Core.atlas.find("unitinfo6-barSSSS").width;
         }
         else if(shar2){
-            bar = (NinePatchDrawable) drawable("unitinfo-barSSSSS", 27, 27, 16, 16);
-            top = (NinePatchDrawable) drawable("unitinfo-barSSSSS-top", 27, 27, 16, 16);
-            spriteWidth = Core.atlas.find("unitinfo-barSSSSS").width;
+            bar = (NinePatchDrawable) drawable("unitinfo6-barSSSSS", 27, 27, 16, 16);
+            top = (NinePatchDrawable) drawable("unitinfo6-barSSSSS-top", 27, 27, 16, 16);
+            spriteWidth = Core.atlas.find("unitinfo6-barSSSSS").width;
         }
         else if(shar3){
-            bar = (NinePatchDrawable) drawable("unitinfo-barSSSSSS", 32, 32, 16, 16);
-            top = (NinePatchDrawable) drawable("unitinfo-barSSSSSS-top", 32, 32, 16, 16);
-            spriteWidth = Core.atlas.find("unitinfo-barSSSSSS").width;
+            bar = (NinePatchDrawable) drawable("unitinfo6-barSSSSSS", 32, 32, 16, 16);
+            top = (NinePatchDrawable) drawable("unitinfo6-barSSSSSS-top", 32, 32, 16, 16);
+            spriteWidth = Core.atlas.find("unitinfo6-barSSSSSS").width;
         }
     }
 

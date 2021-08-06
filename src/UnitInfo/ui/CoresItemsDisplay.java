@@ -1,6 +1,7 @@
 package UnitInfo.ui;
 
 import arc.scene.ui.Label;
+import arc.scene.ui.Tooltip;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.Time;
@@ -95,7 +96,8 @@ public class CoresItemsDisplay {
                         if(usedItems.get(team).contains(item)){
                             itemTable.add(new Stack(){{
                                 add(new Table(tt -> {
-                                    tt.image(item.uiIcon).size(iconSmall).tooltip(ttt -> ttt.background(Styles.black6).margin(2f).add(item.localizedName).style(Styles.outlineLabel));
+                                    tt.image(item.icon(Cicon.small)).size(24);
+                                    tt.addListener(new Tooltip(ttt -> ttt.background(Styles.black6).margin(2f).add(item.localizedName).style(Styles.outlineLabel)));
                                     tt.label(() -> core == null ? "0" : UI.formatAmount(core.items.get(item))).minWidth(5 * 8f).left();
                                 }));
                                 add(new Table(tt -> {
@@ -119,7 +121,8 @@ public class CoresItemsDisplay {
                     unitTable.center();
                     for(UnitType unit : content.units()){
                         if(unit != UnitTypes.block && usedUnits.get(team).contains(unit)){
-                            unitTable.image(unit.uiIcon).size(iconSmall).padRight(3).tooltip(tt -> tt.background(Styles.black6).margin(2f).add(unit.localizedName).style(Styles.outlineLabel));
+                            unitTable.image(unit.icon(Cicon.small)).size(24).padRight(3);
+                            unitTable.addListener(new Tooltip(ttt -> ttt.background(Styles.black6).margin(2f).add(unit.localizedName).style(Styles.outlineLabel)));
                             unitTable.label(() -> core == null ? "0" : UI.formatAmount(Groups.unit.count(u -> u.team == team && u.type == unit))).padRight(3).minWidth(5 * 8f).left();
                             if(++i[0] % 5 == 0) unitTable.row();
                         }
