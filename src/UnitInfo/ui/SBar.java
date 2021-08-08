@@ -9,9 +9,12 @@ import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.style.*;
 import arc.scene.ui.layout.*;
+import arc.util.Align;
 import arc.util.pooling.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+
+import static UnitInfo.SVars.modUiScale;
 
 public class SBar extends Element{
     static final Rect scissor = new Rect();
@@ -145,16 +148,6 @@ public class SBar extends Element{
             }
         }
         Draw.color();
-
-        Font font = Fonts.outline;
-        GlyphLayout lay = Pools.obtain(GlyphLayout.class, GlyphLayout::new);
-        font.getData().setScale(Scl.scl());
-        lay.setText(font, name);
-        font.setColor(Color.white);
-        font.draw(name, x + width / 2f - lay.width / 2f, y + height / 2f + lay.height / 2f + 1);
-        font.getData().setScale(Scl.scl());
-
-        Pools.free(lay);
-        Draw.reset();
+        Fonts.outline.draw(name, x + width / 2f, y + height / 2f, Color.white, Scl.scl(modUiScale < 1 ? modUiScale : 1), false, Align.center);
     }
 }

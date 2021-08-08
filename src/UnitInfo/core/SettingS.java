@@ -12,6 +12,7 @@ public class SettingS {
         ui.settings.graphics.sliderPref(key, def, min, max, step, s);
     }
     public void init(){
+        addGraphicSlideSetting("infoUiScale", 100, 25, 300, 25, s -> s + "%");
         addGraphicCheckSetting("pastwave", false);
         addGraphicCheckSetting("emptywave", true);
         addGraphicSlideSetting("wavemax", 50, 0, 200, 1, s -> s + "waves");

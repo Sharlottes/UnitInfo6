@@ -35,6 +35,7 @@ import mindustry.world.blocks.power.PowerNode;
 import mindustry.world.blocks.storage.*;
 
 import static UnitInfo.SVars.clear;
+import static UnitInfo.SVars.modUiScale;
 import static arc.Core.*;
 import static mindustry.Vars.*;
 
@@ -223,6 +224,13 @@ public class HudUi {
         });
 
         Events.run(EventType.Trigger.update, ()->{
+            if(modUiScale != settings.getInt("infoUiScale") / 100f && settings.getInt("infoUiScale") / 100f != 0){
+                modUiScale = settings.getInt("infoUiScale") / 100f;
+                mainTable.clearChildren();
+                addTable();
+                coreItems.rebuild();
+            }
+
             if((input.keyDown(KeyCode.shiftRight) || input.keyDown(KeyCode.shiftLeft))){
                 if(input.keyTap(KeyCode.r)) lockButton.change();
             }
@@ -318,7 +326,7 @@ public class HudUi {
                 background = Styles.black8;
             }});
 
-            Table labelTable = new Table(t -> t.add(label).scaling(Scaling.fit).left().padRight(40 * 8f));
+            Table labelTable = new Table(t -> t.add(label).left().padRight(Scl.scl(modUiScale) * 40 * 8f));
 
             table.table(t -> {
                 Seq<Button> buttons = Seq.with(null, null, null, null, null, null);
@@ -327,17 +335,14 @@ public class HudUi {
                 for(int i = 0; i < buttons.size; i++){
                     int finalI = i;
                     buttons.set(i, t.button(icons.get(i), Styles.clearToggleTransi, () ->
-                        reset(finalI, buttons, label, table, labelTable, strs.get(finalI))).size(5*8f).get());
+                        reset(finalI, buttons, label, table, labelTable, strs.get(finalI))).size(Scl.scl(modUiScale) * 5 * 8f).get());
                     t.row();
                 }
             });
             baseTable = table.table(tt -> tt.stack(unitTable, coreTable, waveTable, tileTable, itemTable, labelTable).align(Align.left).left().visible(() -> settings.getBool("infoui"))).get();
             table.fillParent = true;
 
-            table.visibility = () -> (ui.hudfrag.shown && !ui.minimapfrag.shown()
-                    && (!Vars.mobile ||
-                        !(Vars.control.input.block != null || !Vars.control.input.selectRequests.isEmpty()
-                            && !(Vars.control.input.lastSchematic != null && !Vars.control.input.selectRequests.isEmpty()))));
+            table.visibility = () -> ui.hudfrag.shown && !ui.minimapfrag.shown();
         });
         ui.hudGroup.addChild(mainTable);
     }
@@ -369,7 +374,7 @@ public class HudUi {
         }
         bars.add(new Stack(){{
             add(new Table(t -> {
-                t.top().defaults().width(Scl.scl(23 * 8f)).height(Scl.scl(4f * 8f));
+                t.top().defaults().width(Scl.scl(Scl.scl(modUiScale) * 23 * 8f)).height(Scl.scl(Scl.scl(modUiScale) * 4 * 8f));
                 int i = 2;
                 t.add(new SBar(
                     () -> BarInfo.strings.get(i),
@@ -410,7 +415,7 @@ public class HudUi {
                                 float v = entity.power.status * entity.power.graph.getLastScaledPowerIn();
 
                                 super.draw();
-                                Lines.stroke(Scl.scl(2f), Pal.removeBack);
+                                Lines.stroke(Scl.scl(modUiScale) * 2f, Pal.removeBack);
                                 Draw.alpha(1 - v/max);
                                 Lines.line(x, y - 2f + height, x + width, y - 2f);
                                 Draw.color(Pal.remove);
@@ -421,7 +426,7 @@ public class HudUi {
                         };
                     }
                     clearChildren();
-                    add(image).size(Cicon.small.size).padBottom(2 * 8f).padRight(3 * 8f);
+                    add(image).size(Cicon.small.size).padBottom(Scl.scl(modUiScale) * 2 * 8f).padRight(Scl.scl(modUiScale) * 3 * 8f);
                 });
                 pack();
             }});
@@ -434,7 +439,7 @@ public class HudUi {
                             else setDrawable(clear);
                         });
                         visibility = () -> getTarget() instanceof Unit;
-                    }}.setScaling(Scaling.fit)).size(Scl.scl(30f)).padBottom(Scl.scl(4 * 8f)).padRight(Scl.scl(6 * 8f));
+                    }}.setScaling(Scaling.fit)).size(Scl.scl(Scl.scl(modUiScale) * 30f)).padBottom(Scl.scl(Scl.scl(modUiScale) * 4 * 8f)).padRight(Scl.scl(Scl.scl(modUiScale) * 6 * 8f));
                 t.pack();
             }));
         }});
@@ -445,7 +450,7 @@ public class HudUi {
             bars.add(new SBar(
                     () -> strings.get(i),
                     () -> {
-                        if (colors.get(i) != Color.clear) lastColors.set(i, colors.get(i));
+                        if(colors.get(i) != Color.clear) lastColors.set(i, colors.get(i));
                         return lastColors.get(i);
                     },
                     () -> numbers.get(i)
@@ -458,7 +463,7 @@ public class HudUi {
             bars.add(new SBar(
                     () -> strings.get(i),
                     () -> {
-                        if (colors.get(i) != Color.clear) lastColors.set(i, colors.get(i));
+                        if(colors.get(i) != Color.clear) lastColors.set(i, colors.get(i));
                         return lastColors.get(i);
                     },
                     () -> numbers.get(i)
@@ -467,13 +472,12 @@ public class HudUi {
 
         bars.add(new Stack(){{
             add(new Table(t -> {
-                t.top().defaults().width(Scl.scl(23 * 8f)).height(Scl.scl(4f * 8f));
-
+                t.top().defaults().width(Scl.scl(modUiScale) * 23 * 8f).height(Scl.scl(modUiScale) * 4 * 8f);
                 int i = 5;
                 t.add(new SBar(
                         () -> strings.get(i),
                         () -> {
-                            if (colors.get(i) != Color.clear) lastColors.set(i, colors.get(i));
+                            if(colors.get(i) != Color.clear) lastColors.set(i, colors.get(i));
                             return lastColors.get(i);
                         },
                         () -> numbers.get(i)
@@ -492,7 +496,7 @@ public class HudUi {
                         }
                         setDrawable(region);
                     });
-                }}.setScaling(Scaling.fit)).size(Scl.scl(30f)).padBottom(Scl.scl(4 * 8f)).padRight(Scl.scl(6 * 8f));
+                }}.setScaling(Scaling.fit)).size(Scl.scl(modUiScale) * 30f).padBottom(Scl.scl(modUiScale) * 4 * 8f).padRight(Scl.scl(modUiScale) * 6 * 8f);
                 t.pack();
             }));
         }});
@@ -500,10 +504,10 @@ public class HudUi {
 
     public void addWeapon(){
         weapon = new Table(tx -> {
-            tx.left().defaults().minSize(Scl.scl(12 * 8f));
+            tx.left().defaults().minSize(Scl.scl(modUiScale) * 12 * 8f);
 
             tx.add(new Table(Tex.button, tt -> {
-                tt.left().top().defaults().width(Scl.scl(24/3f * 8f)).minHeight(Scl.scl(12/3f * 8f));
+                tt.left().top().defaults().width(Scl.scl(modUiScale) * 8 * 8f).minHeight(Scl.scl(modUiScale) * 4 * 8f);
 
                 if(getTarget() instanceof Unit u && u.type != null) {
                     UnitType type = u.type;
@@ -545,15 +549,15 @@ public class HudUi {
                                             if(getDrawable() != null)
                                                 getDrawable().draw(x + imageX, y + imageY, imageWidth * scaleX, imageHeight * scaleY);
                                         }
-                                    }.setScaling(Scaling.fit)).size(Scl.scl(6 * 8f)).scaling(Scaling.fit);
+                                    }.setScaling(Scaling.fit)).size(Scl.scl(modUiScale) * 6 * 8f);
                                 }));
 
                                 add(new Table(h -> {
-                                    h.defaults().growX().height(Scl.scl(9)).width(Scl.scl(31.5f)).padTop(Scl.scl(9*2f));
+                                    h.defaults().growX().height(Scl.scl(modUiScale) * 9f).width(Scl.scl(modUiScale) * 31.5f).padTop(Scl.scl(modUiScale) * 18f);
                                     h.add(new Bar(
                                         () -> "",
                                         () -> Pal.accent.cpy().lerp(Color.orange, mount.reload / weapon.reload),
-                                        () -> mount.reload / weapon.reload)).padLeft(Scl.scl(8f));
+                                        () -> mount.reload / weapon.reload)).padLeft(Scl.scl(modUiScale) * 8f);
                                     h.pack();
                                 }));
                             }}).left();
@@ -569,7 +573,7 @@ public class HudUi {
                     Draw.color(color.r, color.g, color.b, (settings.getInt("uiopacity") / 100f) * this.parentAlpha);
                     getBackground().draw(x, y, width, height);
                 }
-            }).padRight(Scl.scl(24 * 8f));
+            }).padRight(Scl.scl(modUiScale) * 24 * 8f);
             tx.setColor(tx.color.cpy().a(1f));
         });
     }
@@ -580,7 +584,7 @@ public class HudUi {
             table.left();
             addBars();
             table.add(new Table(Tex.button, t -> {
-                t.defaults().width(Scl.scl(25 * 8f)).scaling(Scaling.bounded);
+                t.defaults().width(Scl.scl(modUiScale) * 25 * 8f);
 
                 t.table(Tex.underline2, tt -> {
                     Stack stack = new Stack(){{
@@ -594,7 +598,7 @@ public class HudUi {
                                 }
                                 setDrawable(region);
                             });
-                        }}.setScaling(Scaling.fit)).size(Scl.scl(4f * 8f))));
+                        }}.setScaling(Scaling.fit)).size(Scl.scl(Scl.scl(modUiScale) * 4f * 8f))));
                         add(new Table(ttt -> {
                             ttt.add(new Stack(){{
                                 add(new Table(temp -> temp.add(new Image(){{
@@ -605,12 +609,12 @@ public class HudUi {
                                     if(getTarget() instanceof Unit) {
                                         Label label = new Label(() -> (getTarget() instanceof Unit && ((Unit) getTarget()).type() != null ? (int) ((Unit) getTarget()).type().armor + "" : ""));
                                         label.setColor(Pal.surge);
-                                        label.setFontScale(0.5f);
+                                        label.setFontScale(Scl.scl(modUiScale) * 0.5f);
                                         temp.add(label).center();
                                     }
                                     temp.pack();
                                 }));
-                            }}).padLeft(Scl.scl(2 * 8f)).padBottom(Scl.scl(2 * 8f));
+                            }}).padLeft(Scl.scl(modUiScale) * 2 * 8f).padBottom(Scl.scl(modUiScale) * 2 * 8f);
                         }));
                     }};
 
@@ -624,6 +628,7 @@ public class HudUi {
                         }
                         return name;
                     });
+                    if(modUiScale < 1) label.setFontScale(Scl.scl(modUiScale));
 
                     TextButton button = Elem.newButton("?", Styles.clearPartialt, () -> {
                         if(getTarget() instanceof Unit u && u.type != null)
@@ -648,8 +653,8 @@ public class HudUi {
                     tt.top();
                     tt.add(stack);
                     tt.add(label);
-                    tt.add(button).size(Scl.scl(5 * 8f));
-                    tt.add(lockButton).size(Scl.scl(3 * 8f));
+                    tt.add(button).size(Scl.scl(modUiScale) * 5 * 8f);
+                    tt.add(lockButton).size(Scl.scl(modUiScale) * 3 * 8f);
 
                     tt.clicked(()->{
                         if(getTarget() == null) return;
@@ -659,7 +664,7 @@ public class HudUi {
                     });
                     tt.addListener(new Tooltip(tool -> tool.background(Tex.button).table(to -> {
                         to.table(Tex.underline2, tool2 -> {
-                            tool2.label(()->{
+                            Label label2 = new Label(()->{
                                 if(getTarget() instanceof Unit u){
                                     if(u.getPlayer() != null) return u.getPlayer().name;
                                     else if(u.type != null) return u.type.localizedName;
@@ -668,16 +673,20 @@ public class HudUi {
                                 return "";
                             });
 
+                            if(modUiScale < 1) label2.setFontScale(Scl.scl(modUiScale));
+                            tool2.add(label2);
                         });
                         to.row();
-                        to.label(()->getTarget() == null ? "(" + 0 + ", " + 0 + ")" : "(" + Strings.fixed(getTarget().x() / tilesize, 2) + ", " + Strings.fixed(getTarget().y() / tilesize, 2) + ")");
+                        Label label2 = new Label(()->getTarget() == null ? "(" + 0 + ", " + 0 + ")" : "(" + Strings.fixed(getTarget().x() / tilesize, 2) + ", " + Strings.fixed(getTarget().y() / tilesize, 2) + ")");
+                        if(modUiScale < 1) label2.setFontScale(Scl.scl(modUiScale));
+                        to.add(label2);
                     })));
                 });
                 t.row();
                 t.table(tt -> {
-                    tt.defaults().width(Scl.scl(23 * 8f)).height(Scl.scl(4f * 8f)).top();
+                    tt.defaults().width(Scl.scl(modUiScale) * 23 * 8f).height(Scl.scl(modUiScale) * 4f * 8f).top();
                     for(Element bar : bars){
-                        bar.setWidth(bar.getWidth());
+                        bar.setScale(Scl.scl(modUiScale));
                         bar.setHeight(bar.getHeight());
                         tt.add(bar).growX().left();
                         tt.row();
@@ -692,7 +701,7 @@ public class HudUi {
                     Draw.color(color.r, color.g, color.b, (settings.getInt("uiopacity") / 100f) * this.parentAlpha);
                     getBackground().draw(x, y, width, height);
                 }
-            }).padRight(Scl.scl(24 * 8f));
+            }).padRight(Scl.scl(modUiScale) * 24 * 8f);
             table.row();
             table.update(() -> {
                 try {
@@ -731,9 +740,10 @@ public class HudUi {
                 table.center();
                 final int jj = j+1;
                 Label label = new Label(() -> "[#" + (state.wave == j+1 ? Color.red.toString() : Pal.accent.toString()) + "]" + jj + "[]");
+                if(modUiScale < 1) label.setFontScale(Scl.scl(modUiScale));
 
                 t.add(label);
-            }).size(Scl.scl(32f));
+            }).size(Scl.scl(modUiScale) * 4 * 8f);
 
             table.table(Tex.underline, tx -> {
                 if(settings.getBool("emptywave") && state.rules.spawns.find(g -> g.getSpawned(j) > 0) == null) {
@@ -770,13 +780,14 @@ public class HudUi {
                         tt.add(new Stack(){{
                             add(new Table(ttt -> {
                                 ttt.center();
-                                ttt.add(image).size(40f);
+                                ttt.add(image).size(40 * Scl.scl(modUiScale < 1 ? modUiScale : 1));
                                 ttt.pack();
                             }));
 
                             add(new Table(ttt -> {
                                 ttt.bottom().left();
                                 Label label = new Label(() -> amount + "");
+                                if(modUiScale < 1) label.setFontScale(Scl.scl(modUiScale));
                                 ttt.add(label);
                                 ttt.pack();
                             }));
@@ -785,11 +796,11 @@ public class HudUi {
                                 ttt.top().right();
                                 Image image = new Image(Icon.warning.getRegion()).setScaling(Scaling.fit);
                                 image.update(() -> image.setColor(Tmp.c2.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))));
-                                ttt.add(image).size(Scl.scl(12f));
+                                ttt.add(image).size(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 12f);
                                 ttt.visible(() -> group.effect == StatusEffects.boss);
                                 ttt.pack();
                             }));
-                        }}).pad(2f);
+                        }}).pad(2f * Scl.scl(modUiScale));
                         tt.clicked(() -> {
                             if(input.keyDown(KeyCode.shiftLeft) && Fonts.getUnicode(group.type.name) != 0){
                                 app.setClipboardText((char)Fonts.getUnicode(group.type.name) + "");
@@ -820,14 +831,14 @@ public class HudUi {
                                 to.table(tot -> {
                                     tot.left();
                                     tot.add(bundle.get("shar-stat.waveStatus"));
-                                    tot.add(finalStatus).size(8 * 3);
+                                    tot.add(finalStatus).size(Scl.scl(modUiScale) * 3 * 8f);
                                     if(!mobile){
                                         HandCursorListener listener = new HandCursorListener();
                                         finalStatus.addListener(listener);
                                         finalStatus.update(() -> finalStatus.color.lerp(!listener.isOver() ? Color.lightGray : Color.white, Mathf.clamp(0.4f * Time.delta)));
                                     }
                                     tot.add("[stat]" + group.effect.localizedName);
-                                }).size(32f);
+                                }).size(32f * Scl.scl(modUiScale));
                                 to.row();
                             }
                             if(group.items != null) {
@@ -835,14 +846,14 @@ public class HudUi {
                                     tot.left();
                                     ItemStack stack = group.items;
                                     tot.add(bundle.get("shar-stat.waveItem"));
-                                    tot.add(new ItemImage(stack)).size(8 * 3);
+                                    tot.add(new ItemImage(stack)).size(Scl.scl(modUiScale) * 3 * 8f);
                                     if(!mobile){
                                         HandCursorListener listener = new HandCursorListener();
                                         tot.addListener(listener);
                                         tot.update(() -> tot.color.lerp(!listener.isOver() ? Color.lightGray : Color.white, Mathf.clamp(0.4f * Time.delta)));
                                     }
                                     tot.add("[stat]" + stack.item.localizedName);
-                                }).size(32f);
+                                }).size(32f * Scl.scl(modUiScale));
                                 to.row();
                             }
                         })));
@@ -873,10 +884,9 @@ public class HudUi {
         wavePane.setOverscroll(false, false);
         wavePane.setWidget(new Table(tx -> tx.table(this::setWave).left()));
         waveTable = new Table(table -> {
-            table.add(new Table(Tex.button, t -> {
-                t.defaults().minWidth(Scl.scl(25 * 8f)).scaling(Scaling.fit).left();
-                t.add(wavePane).maxHeight(Scl.scl(32 * 8f));
-            }){
+            table.left();
+            table.defaults().width(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 32 * 8f).maxHeight(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 32 * 8f).align(Align.left);
+            table.add(new Table(Tex.button, t -> t.add(wavePane)){
                 @Override
                 protected void drawBackground(float x, float y) {
                     if(getBackground() == null) return;
@@ -884,7 +894,7 @@ public class HudUi {
                     getBackground().draw(x, y, width, height);
                     Draw.reset();
                 }
-            }).padRight(Scl.scl(39 * 8f));
+            }).padRight(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 39 * 8f);
 
             table.fillParent = true;
             table.visibility = () -> uiIndex == 1;
@@ -902,7 +912,9 @@ public class HudUi {
                 int finalI = i;
                 t.table(Tex.underline2, head -> {
                     head.center();
-                    head.label(() -> "[#" + coreItems.teams[finalI].color.toString() + "]" + coreItems.teams[finalI].name + "[]");
+                    Label label = new Label(() -> "[#" + coreItems.teams[finalI].color.toString() + "]" + coreItems.teams[finalI].name + "[]");
+                    if(modUiScale < 1) label.setFontScale(Scl.scl(modUiScale));
+                    head.add(label);
                 });
                 t.row();
                 for(int r = 0; r < coreamount; r++) {
@@ -926,18 +938,24 @@ public class HudUi {
                                     image.addListener(listener1);
                                     image.update(() -> image.color.lerp(!listener1.isOver() ? Color.lightGray : Color.white, Mathf.clamp(0.4f * Time.delta)));
                                 }
-                                image.addListener(new Tooltip(t -> t.background(Tex.button).label(() -> "([#" + Tmp.c1.set(Color.green).lerp(Color.red, 1 - core.healthf()).toString() + "]" + Strings.fixed(core.health, 2) + "[]/" + Strings.fixed(core.block.health, 2) + ")")));
-                                s.add(image).size(40f).scaling(Scaling.fit);
+                                image.addListener(new Tooltip(t -> {
+                                    Label label = new Label(() -> "([#" + Tmp.c1.set(Color.green).lerp(Color.red, 1 - core.healthf()).toString() + "]" + Strings.fixed(core.health, 2) + "[]/" + Strings.fixed(core.block.health, 2) + ")");
+                                    if(modUiScale < 1) label.setFontScale(Scl.scl(modUiScale));
+                                    t.background(Tex.button).add(label);
+                                }));
+                                s.add(image).size(40 * Scl.scl(modUiScale < 1 ? modUiScale : 1));
                             }));
 
                             add(new Table(s -> {
-                                s.bottom().defaults().growX().height(Scl.scl(9)).pad(4);
+                                s.bottom().defaults().growX().height(Scl.scl(modUiScale) * 9f).pad(4 * Scl.scl(modUiScale));
                                 s.add(new Bar(() -> "", () -> Pal.health, core::healthf));
                                 s.pack();
                             }));
                         }});
                         tt.row();
-                        tt.label(() -> "(" + (int) core.x / 8 + ", " + (int) core.y / 8 + ")");
+                        Label label = new Label(() -> "(" + (int) core.x / 8 + ", " + (int) core.y / 8 + ")");
+                        if(modUiScale < 1) label.setFontScale(Scl.scl(modUiScale));
+                        tt.add(label);
                     });
                 }
                 t.row();
@@ -963,10 +981,9 @@ public class HudUi {
         corePane.setOverscroll(false, false);
 
         coreTable = new Table(table -> {
-            table.add(new Table(Tex.button, t -> {
-                t.defaults().minWidth(Scl.scl(25 * 8f)).scaling(Scaling.fit).left();
-                t.add(corePane).maxHeight(Scl.scl(32 * 8f));
-            }){
+            table.left();
+            table.defaults().width(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 50 * 8f).height(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 32 * 8f).align(Align.left);
+            table.add(new Table(Tex.button, t -> t.add(corePane)){
                 @Override
                 protected void drawBackground(float x, float y) {
                     if(getBackground() == null) return;
@@ -974,7 +991,7 @@ public class HudUi {
                     getBackground().draw(x, y, width, height);
                     Draw.reset();
                 }
-            }).padRight(Scl.scl(39 * 8f));
+            }).padRight(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 39 * 8f);
 
             table.fillParent = true;
             table.visibility = () -> uiIndex == 2;
@@ -992,32 +1009,24 @@ public class HudUi {
                     if(tile.overlay().icon(Cicon.small) != atlas.find("error")) image.image(tile.overlay().icon(Cicon.small));
                     if(tile.block().icon(Cicon.small) != atlas.find("error")) image.image(tile.block().icon(Cicon.small));
                 });
-                head.label(() -> tile == null ? "(null, null)" : "(" + tile.x + ", " + tile.y + ")").center();
+                head.row();
+                Label label = new Label(() -> tile == null ? "(null, null)" : "(" + tile.x + ", " + tile.y + ")");
+                if(modUiScale < 1) label.setFontScale(Scl.scl(modUiScale));
+                head.add(label).center();
             });
         });
     }
 
     public void addTileTable(){
         if(uiIndex != 3) return;
-        ScrollPane tilePane = new ScrollPane(new Image(clear).setScaling(Scaling.fit), Styles.smallPane);
-        tilePane.setScrollingDisabled(true, false);
-        tilePane.setScrollYForce(tileScrollPos);
-        tilePane.update(() -> {
-            if(tilePane.hasScroll()){
-                Element result = scene.hit(input.mouseX(), input.mouseY(), true);
-                if(result == null || !result.isDescendantOf(tilePane)){
-                    scene.setScrollFocus(null);
-                }
-            }
-            tileScrollPos = tilePane.getScrollY();
-            tilePane.setWidget(new Table(tx -> tx.table(this::setTile).left()));
-        });
-
-        tilePane.setOverscroll(false, false);
         tileTable = new Table(table -> {
-            table.add(new Table(Tex.button, t -> {
-                t.defaults().minWidth(Scl.scl(25 * 8f)).scaling(Scaling.fit).left();
-                t.add(tilePane).maxHeight(Scl.scl(32 * 8f));
+            table.left();
+            table.defaults().minWidth(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 32 * 8f).minHeight(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 20 * 8f).align(Align.left);
+            table.add(new Table(Tex.button, t->{
+                t.update(()->{
+                    t.clearChildren();
+                    setTile(t);
+                });
             }){
                 @Override
                 protected void drawBackground(float x, float y) {
@@ -1026,7 +1035,7 @@ public class HudUi {
                     getBackground().draw(x, y, width, height);
                     Draw.reset();
                 }
-            }).padRight(Scl.scl(39 * 8f));
+            }).padRight(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 39 * 8f);
 
             table.fillParent = true;
             table.visibility = () -> uiIndex == 3;
@@ -1038,7 +1047,9 @@ public class HudUi {
             for(int i = 0; i < coreItems.tables.size; i++){
                 if((state.rules.pvp && coreItems.teams[i] != player.team()) || coreItems.teams[i].cores().isEmpty()) continue;
                 int finalI = i;
-                t.background(Tex.underline2).label(() -> "[#" + coreItems.teams[finalI].color.toString() + "]" + coreItems.teams[finalI].name + "[]").center();
+                Label label = new Label(() -> "[#" + coreItems.teams[finalI].color.toString() + "]" + coreItems.teams[finalI].name + "[]");
+                if(modUiScale < 1) label.setFontScale(Scl.scl(modUiScale));
+                t.background(Tex.underline2).add(label).center();
                 t.row();
                 t.add(coreItems.tables.get(finalI)).left();
                 t.row();
@@ -1048,26 +1059,25 @@ public class HudUi {
 
     public void addItemTable(){
         if(uiIndex != 4) return;
-        ScrollPane tilePane = new ScrollPane(new Image(clear).setScaling(Scaling.fit), Styles.smallPane);
-        tilePane.setScrollingDisabled(true, false);
-        tilePane.setScrollYForce(tileScrollPos);
-        tilePane.update(() -> {
-            if(tilePane.hasScroll()){
+        ScrollPane itemPane = new ScrollPane(new Image(clear).setScaling(Scaling.fit), Styles.smallPane);
+        itemPane.setScrollingDisabled(true, false);
+        itemPane.setScrollYForce(tileScrollPos);
+        itemPane.update(() -> {
+            if(itemPane.hasScroll()){
                 Element result = scene.hit(input.mouseX(), input.mouseY(), true);
-                if(result == null || !result.isDescendantOf(tilePane)){
+                if(result == null || !result.isDescendantOf(itemPane)){
                     scene.setScrollFocus(null);
                 }
             }
-            itemScrollPos = tilePane.getScrollY();
+            itemScrollPos = itemPane.getScrollY();
         });
-        tilePane.setWidget(new Table(this::setItem).left());
+        itemPane.setWidget(new Table(this::setItem).left());
+        itemPane.setOverscroll(false, false);
 
-        tilePane.setOverscroll(false, false);
         itemTable = new Table(table -> {
-            table.add(new Table(Tex.button, t -> {
-                t.defaults().minWidth(Scl.scl(25 * 8f)).scaling(Scaling.fit).left();
-                t.add(tilePane).maxHeight(Scl.scl(32 * 8f));
-            }){
+            table.left();
+            table.defaults().width(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 50 * 8f).height(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 32 * 8f).align(Align.left);
+            table.add(new Table(Tex.button, t -> t.add(itemPane)){
                 @Override
                 protected void drawBackground(float x, float y) {
                     if(getBackground() == null) return;
@@ -1075,7 +1085,7 @@ public class HudUi {
                     getBackground().draw(x, y, width, height);
                     Draw.reset();
                 }
-            }).padRight(Scl.scl(39 * 8f));
+            }).padRight(Scl.scl(modUiScale < 1 ? modUiScale : 1) * 39 * 8f);
 
             table.fillParent = true;
             table.visibility = () -> uiIndex == 4;

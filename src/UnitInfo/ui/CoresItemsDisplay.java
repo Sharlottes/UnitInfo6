@@ -13,6 +13,7 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.storage.*;
 
+import static UnitInfo.SVars.modUiScale;
 import static mindustry.Vars.*;
 
 public class CoresItemsDisplay {
@@ -96,9 +97,11 @@ public class CoresItemsDisplay {
                         if(usedItems.get(team).contains(item)){
                             itemTable.add(new Stack(){{
                                 add(new Table(tt -> {
-                                    tt.image(item.icon(Cicon.small)).size(24);
-                                    tt.addListener(new Tooltip(ttt -> ttt.background(Styles.black6).margin(2f).add(item.localizedName).style(Styles.outlineLabel)));
-                                    tt.label(() -> core == null ? "0" : UI.formatAmount(core.items.get(item))).minWidth(5 * 8f).left();
+                                    tt.image(item.icon(Cicon.small)).size(3 * 8f * Scl.scl(modUiScale < 1 ? modUiScale : 1));
+                                    tt.addListener(new Tooltip(ttt -> ttt.background(Styles.black6).margin(2f * Scl.scl(modUiScale < 1 ? modUiScale : 1)).add(item.localizedName).style(Styles.outlineLabel)));
+                                    Label label = new Label(() -> core == null ? "0" : UI.formatAmount(core.items.get(item)));
+                                    label.setFontScale(Scl.scl(modUiScale < 1 ? modUiScale : 1));
+                                    tt.add(label).minWidth(5 * 8f * Scl.scl(modUiScale < 1 ? modUiScale : 1)).left();
                                 }));
                                 add(new Table(tt -> {
                                     tt.bottom().right();
@@ -106,11 +109,11 @@ public class CoresItemsDisplay {
                                         int amount = updateItems.get(team).get(item.id).amount;
                                         return (amount > 0 ? "[green]+" : amount == 0 ? "[orange]" : "[red]") + amount + "[]";
                                     });
-                                    label.setFontScale(0.65f);
-                                    tt.add(label).bottom().right().padTop(16f);
+                                    label.setFontScale(0.65f * Scl.scl(modUiScale < 1 ? modUiScale : 1));
+                                    tt.add(label).bottom().right().padTop(16f * Scl.scl(modUiScale < 1 ? modUiScale : 1));
                                     tt.pack();
                                 }));
-                            }}).padRight(3).left();
+                            }}).padRight(3 * Scl.scl(modUiScale < 1 ? modUiScale : 1)).left();
                             if(++i[0] % 5 == 0) itemTable.row();
                         }
                     }
@@ -121,9 +124,12 @@ public class CoresItemsDisplay {
                     unitTable.center();
                     for(UnitType unit : content.units()){
                         if(unit != UnitTypes.block && usedUnits.get(team).contains(unit)){
-                            unitTable.image(unit.icon(Cicon.small)).size(24).padRight(3);
-                            unitTable.addListener(new Tooltip(ttt -> ttt.background(Styles.black6).margin(2f).add(unit.localizedName).style(Styles.outlineLabel)));
-                            unitTable.label(() -> core == null ? "0" : UI.formatAmount(Groups.unit.count(u -> u.team == team && u.type == unit))).padRight(3).minWidth(5 * 8f).left();
+                            unitTable.image(unit.icon(Cicon.small)).size(3 * 8f * Scl.scl(modUiScale < 1 ? modUiScale : 1)).padRight(3 * Scl.scl(modUiScale < 1 ? modUiScale : 1));
+                            unitTable.addListener(new Tooltip(ttt -> ttt.background(Styles.black6).margin(2f * Scl.scl(modUiScale < 1 ? modUiScale : 1)).add(unit.localizedName).style(Styles.outlineLabel)));
+                            Label label = new Label(() -> core == null ? "0" : UI.formatAmount(Groups.unit.count(u -> u.team == team && u.type == unit)));
+                            label.setFontScale(Scl.scl(modUiScale < 1 ? modUiScale : 1));
+                            unitTable.add(label).padRight(3 * Scl.scl(modUiScale < 1 ? modUiScale : 1)).minWidth(5 * 8f * Scl.scl(modUiScale < 1 ? modUiScale : 1)).left();
+
                             if(++i[0] % 5 == 0) unitTable.row();
                         }
                     }
