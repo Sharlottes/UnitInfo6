@@ -1,5 +1,6 @@
 package UnitInfo.ui;
 
+import UnitInfo.SUtils;
 import arc.*;
 import arc.func.*;
 import arc.graphics.*;
@@ -10,7 +11,7 @@ import arc.scene.*;
 import arc.scene.style.*;
 import arc.scene.ui.layout.*;
 import arc.util.Align;
-import arc.util.pooling.*;
+import arc.util.Tmp;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 
@@ -25,6 +26,8 @@ public class SBar extends Element{
     final Color blinkColor = new Color();
     NinePatchDrawable bar, top;
     float spriteWidth;
+
+    public boolean onedot = false;
 
     public SBar(Prov<String> name, Prov<Color> color, Floatp fraction){
         this.fraction = fraction;
@@ -45,61 +48,55 @@ public class SBar extends Element{
         init();
     }
 
-
-    public Drawable drawable(String name, int left, int right, int top, int bottom){
-        Drawable out;
-
-        TextureAtlas.AtlasRegion region = Core.atlas.find(name);
-
-        int[] splits = {left, right, top, bottom};
-        NinePatch patch = new NinePatch(region, splits[0], splits[1], splits[2], splits[3]);
-        int[] pads = region.pads;
-        if(pads != null) patch.setPadding(pads[0], pads[1], pads[2], pads[3]);
-        out = new ScaledNinePatchDrawable(patch, 1f);
-
-        return out;
+    public SBar rect(){
+        onedot = true;
+        return this;
     }
 
-    public void init(){
-        boolean ssim = Core.settings.getBool("ssim");
-        boolean shar = Core.settings.getBool("shar");
-        boolean shar1 = Core.settings.getBool("shar1");
-        boolean shar2 = Core.settings.getBool("shar2");
-        boolean shar3 = Core.settings.getBool("shar3");
+    public SBar init(){
+        int h = Core.settings.getInt("barstyle");
 
-        bar = (NinePatchDrawable) drawable("unitinfo6-barS", 10, 10, 9, 9);
-        top = (NinePatchDrawable) drawable("unitinfo6-barS-top", 10, 10, 9, 9);
+
+        bar = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barS"), 10, 10, 9, 9);
+        top = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barS-top"), 10, 10, 9, 9);
         spriteWidth = Core.atlas.find("unitinfo6-barS").width;
-        if(ssim){
-            bar = (NinePatchDrawable) drawable("unitinfo6-barSS", 14, 14, 19, 19);
-            top = (NinePatchDrawable) drawable("unitinfo6-barSS-top", 14, 14, 19, 19);
+        if(onedot){
+            bar = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-1dotbar"), 0,0,0,0);
+            top = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-1dotbar-top"),0,0,0,0);
+            spriteWidth = Core.atlas.find("unitinfo6-1dotbar").width;
+        }
+        else if(h == 1){
+            bar = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSS"), 14, 14, 19, 19);
+            top = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSS-top"), 14, 14, 19, 19);
             spriteWidth = Core.atlas.find("unitinfo6-barSS").width;
         }
-        else if(shar){
-            bar = (NinePatchDrawable) drawable("unitinfo6-barSSS", 25, 25, 17, 17);
-            top = (NinePatchDrawable) drawable("unitinfo6-barSSS-top", 25, 25, 17, 17);
+        else if(h == 2){
+            bar = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSSS"), 25, 25, 17, 17);
+            top = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSSS-top"), 25, 25, 17, 17);
             spriteWidth = Core.atlas.find("unitinfo6-barSSS").width;
         }
-        else if(shar1){
-            bar = (NinePatchDrawable) drawable("unitinfo6-barSSSS", 25, 25, 17, 17);
-            top = (NinePatchDrawable) drawable("unitinfo6-barSSSS-top", 25, 25, 17, 17);
+        else if(h == 3){
+            bar = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSSSS"), 25, 25, 17, 17);
+            top = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSSSS-top"), 25, 25, 17, 17);
             spriteWidth = Core.atlas.find("unitinfo6-barSSSS").width;
         }
-        else if(shar2){
-            bar = (NinePatchDrawable) drawable("unitinfo6-barSSSSS", 27, 27, 16, 16);
-            top = (NinePatchDrawable) drawable("unitinfo6-barSSSSS-top", 27, 27, 16, 16);
+        else if(h == 4){
+            bar = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSSSSS"), 27, 27, 16, 16);
+            top = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSSSSS-top"), 27, 27, 16, 16);
             spriteWidth = Core.atlas.find("unitinfo6-barSSSSS").width;
         }
-        else if(shar3){
-            bar = (NinePatchDrawable) drawable("unitinfo6-barSSSSSS", 32, 32, 16, 16);
-            top = (NinePatchDrawable) drawable("unitinfo6-barSSSSSS-top", 32, 32, 16, 16);
+        else if(h == 5){
+            bar = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSSSSSS"), 32, 32, 16, 16);
+            top = (NinePatchDrawable) SUtils.getDrawable(Core.atlas.find("unitinfo6-barSSSSSS-top"), 32, 32, 16, 16);
             spriteWidth = Core.atlas.find("unitinfo6-barSSSSSS").width;
         }
+        return this;
     }
 
     @Override
     public void draw(){
         if(fraction == null) return;
+
         float computed;
         try{
             computed = Mathf.clamp(fraction.get());
@@ -125,29 +122,24 @@ public class SBar extends Element{
         Draw.colorl(0.1f);
         bar.draw(x, y, width, height);
 
-
-        Draw.color(color.cpy().mul(Pal.lightishGray), blinkColor, blink);
+        Draw.color(Tmp.c1.set(color).mul(Pal.lightishGray), blinkColor, blink);
         float topWidth = width * value;
         if(topWidth > spriteWidth){
             top.draw(x, y, topWidth, height);
-        }else{
-            if(ScissorStack.push(scissor.set(x, y, topWidth, height))){
-                top.draw(x, y, spriteWidth, height);
-                ScissorStack.pop();
-            }
+        } else if(ScissorStack.push(scissor.set(x, y, topWidth, height))){
+            top.draw(x, y, spriteWidth, height);
+            ScissorStack.pop();
         }
 
         Draw.color(color, blinkColor, blink);
-        float topWidthReal = width * (Math.min(value, computed));
+        float topWidthReal = width * Math.min(value, computed);
         if(topWidthReal > spriteWidth){
             top.draw(x, y, topWidthReal, height);
-        }else{
-            if(ScissorStack.push(scissor.set(x, y, topWidthReal, height))){
-                top.draw(x, y, spriteWidth, height);
-                ScissorStack.pop();
-            }
+        } else if(ScissorStack.push(scissor.set(x, y, topWidthReal, height))){
+            top.draw(x, y, spriteWidth, height);
+            ScissorStack.pop();
         }
-        Draw.color();
-        Fonts.outline.draw(name, x + width / 2f, y + height / 2f, Color.white, Scl.scl(modUiScale < 1 ? modUiScale : 1), false, Align.center);
+
+        Fonts.outline.draw(name, x + width / 2f, y + height * 0.75f, Color.white, Scl.scl(modUiScale < 1 ? modUiScale : 1), false, Align.center);
     }
 }
